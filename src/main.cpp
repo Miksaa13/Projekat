@@ -57,9 +57,9 @@ struct ProgramState {
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
-    glm::vec3 stazaPosition = glm::vec3(0.0f,-10.0f,0.0f);
+    glm::vec3 stazaPosition = glm::vec3(-2.7f,2.1f,0.0f);
     float backpackScale = 1.0f;
-    float stazaScale = 0.4f;
+    float stazaScale = 0.6f;
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -161,7 +161,7 @@ int main() {
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    glCullFace(GL_BACK);
 
     // build and compile shaders
     // -------------------------
@@ -234,6 +234,8 @@ int main() {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,
                                programState->backpackPosition); // translate it down so it's at the center of the scene
+        model = glm::rotate(model,(float)235.4,glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::rotate(model,(float)-0.04,glm::vec3(1.0f,0.0f,0.0f));
         model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
