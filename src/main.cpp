@@ -68,10 +68,12 @@ struct ProgramState {
     glm::vec3 stazaPosition = glm::vec3(-2.7f,2.1f,0.0f);
     glm::vec3 mercPosition = glm::vec3(-2.7f,0.2f,-5.0f);
     glm::vec3 redbullPosition = glm::vec3(2.1f,0.2f,-10.0f);
+    glm::vec3 lampaPosition = glm::vec3(3.0f,0.2f,-5.0f);
     float backpackScale = 1.0f;
     float stazaScale = 0.6f;
     float mercScale = 1.1f;
     float redbullScale = 0.45f;
+    float lampaScale = 2.0f;
     PointLight pointLight;
     DirLight dirlight;
     ProgramState()
@@ -257,6 +259,9 @@ int main() {
     Model ourModel("resources/objects/ferrari/scene.gltf");
     ourModel.SetShaderTextureNamePrefix("material.");
 
+    Model lampaModel("resources/objects/lampa/untitled.obj");
+    lampaModel.SetShaderTextureNamePrefix("material.");
+
     Model stazaModel("resources/objects/staza/untitled.obj");
     stazaModel.SetShaderTextureNamePrefix("material.");
 
@@ -364,6 +369,13 @@ int main() {
         model = glm::scale(model, glm::vec3(programState->redbullScale));
         ourShader.setMat4("model", model);
         redbullModel.Draw(ourShader);
+        model = glm::mat4(1.0f);
+
+        model = glm::translate(model,programState->lampaPosition);
+        model = glm::rotate(model,(float)235.4,glm::vec3(0.0f,1.0f,0.01f));
+        model = glm::scale(model, glm::vec3(programState->lampaScale));
+        ourShader.setMat4("model", model);
+        lampaModel.Draw(ourShader);
         model = glm::mat4(1.0f);
 
         //drawing skybox
