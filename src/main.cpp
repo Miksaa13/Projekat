@@ -56,12 +56,12 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 backpackPosition = glm::vec3(0.0f);
+    glm::vec3 backpackPosition = glm::vec3(-1.0f,0.0f,0.0f);
     glm::vec3 stazaPosition = glm::vec3(-2.7f,2.1f,0.0f);
-    glm::vec3 mercPosition = glm::vec3(3.0f,0.0f,0.0f);
+    glm::vec3 mercPosition = glm::vec3(-2.7f,0.2f,-5.0f);
     float backpackScale = 1.0f;
     float stazaScale = 0.6f;
-    float mercScale = 0.33f;
+    float mercScale = 1.1f;
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -174,10 +174,11 @@ int main() {
     Model ourModel("resources/objects/ferrari/scene.gltf");
     ourModel.SetShaderTextureNamePrefix("material.");
 
-    //stbi_set_flip_vertically_on_load(true);
-
     Model stazaModel("resources/objects/staza/untitled.obj");
     stazaModel.SetShaderTextureNamePrefix("material.");
+
+    //stbi_set_flip_vertically_on_load(true);
+
 
     Model mercModel("resources/objects/mercedes/untitled.obj");
     mercModel.SetShaderTextureNamePrefix("material.");
@@ -253,6 +254,7 @@ int main() {
         model = glm::mat4(1.0f);
 
         model = glm::translate(model,programState->mercPosition);
+        model = glm::rotate(model,(float)235.4,glm::vec3(0.0f,1.0f,0.0f));
         model = glm::scale(model, glm::vec3(programState->mercScale));
         ourShader.setMat4("model", model);
         mercModel.Draw(ourShader);
