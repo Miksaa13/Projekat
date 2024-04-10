@@ -174,7 +174,7 @@ int main() {
 
     //stbi_set_flip_vertically_on_load(true);
 
-    Model stazaModel("resources/objects/staza1/scene.gltf");
+    Model stazaModel("resources/objects/staza/untitled.obj");
     stazaModel.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
