@@ -58,8 +58,10 @@ struct ProgramState {
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
     glm::vec3 stazaPosition = glm::vec3(-2.7f,2.1f,0.0f);
+    glm::vec3 mercPosition = glm::vec3(3.0f,0.0f,0.0f);
     float backpackScale = 1.0f;
     float stazaScale = 0.6f;
+    float mercScale = 0.33f;
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -177,6 +179,9 @@ int main() {
     Model stazaModel("resources/objects/staza/untitled.obj");
     stazaModel.SetShaderTextureNamePrefix("material.");
 
+    Model mercModel("resources/objects/mercedes/untitled.obj");
+    mercModel.SetShaderTextureNamePrefix("material.");
+
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
     pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
@@ -240,11 +245,19 @@ int main() {
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
         model = glm::mat4(1.0f);
+
         model = glm::translate(model,programState->stazaPosition);
         model = glm::scale(model, glm::vec3(programState->stazaScale));
         ourShader.setMat4("model", model);
         stazaModel.Draw(ourShader);
         model = glm::mat4(1.0f);
+
+        model = glm::translate(model,programState->mercPosition);
+        model = glm::scale(model, glm::vec3(programState->mercScale));
+        ourShader.setMat4("model", model);
+        mercModel.Draw(ourShader);
+        model = glm::mat4(1.0f);
+
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
