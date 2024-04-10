@@ -40,6 +40,14 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+struct DirLight {
+    glm::vec3 direction;
+
+    glm::vec3 specular;
+    glm::vec3 diffuse;
+    glm::vec3 ambient;
+};
+
 struct PointLight {
     glm::vec3 position;
     glm::vec3 ambient;
@@ -63,6 +71,7 @@ struct ProgramState {
     float stazaScale = 0.6f;
     float mercScale = 1.1f;
     PointLight pointLight;
+    DirLight dirlight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
 
@@ -104,6 +113,53 @@ void ProgramState::LoadFromFile(std::string filename) {
 ProgramState *programState;
 
 void DrawImGui(ProgramState *programState);
+
+unsigned int loadCubemap(vector<std::string>& faces);
+
+float skyboxVertices[] = {
+        -1.0f, 1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,
+
+        -1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
+
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
+
+        -1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, -1.0f,
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f
+};
+
 
 int main() {
     // glfw: initialize and configure
@@ -161,6 +217,8 @@ int main() {
 
     // configure global opengl state
     // -----------------------------
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -168,6 +226,29 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader skyboxShader("resources/shaders/skybox.vs","resources/shaders/skybox.fs");
+
+    // skybox VAO
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) nullptr);
+    glEnableVertexAttribArray(0);
+
+     unsigned int skyboxTexture;
+    vector<std::string> faces
+            {
+                    "resources/textures/skybox/left.png",
+                    "resources/textures/skybox/right.png",
+                    "resources/textures/skybox/top.png",
+                    "resources/textures/skybox/bottom.png",
+                    "resources/textures/skybox/back.png",
+                    "resources/textures/skybox/front.png"
+            };
+    skyboxTexture = loadCubemap(faces);
 
     // load models
     // -----------
@@ -193,6 +274,12 @@ int main() {
     pointLight.linear = 0.0f;
     pointLight.quadratic = 0.0f;
 
+
+    DirLight& dirlight = programState->dirlight;
+    dirlight.direction = glm::vec3(0.0f, -1.0, 0.0);
+    dirlight.ambient = glm::vec3(0.4, 0.4, 0.4);
+    dirlight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    dirlight.specular = glm::vec3(1.0, 1.0, 1.0);
 
 
     // draw in wireframe
@@ -229,6 +316,13 @@ int main() {
         ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 100.0f);
+
+        //dirlight
+        ourShader.setVec3("dirlight.direction", dirlight.direction);
+        ourShader.setVec3("dirlight.ambient", dirlight.ambient);
+        ourShader.setVec3("dirlight.diffuse", dirlight.diffuse);
+        ourShader.setVec3("dirlight.specular", dirlight.specular);
+
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -259,6 +353,21 @@ int main() {
         ourShader.setMat4("model", model);
         mercModel.Draw(ourShader);
         model = glm::mat4(1.0f);
+
+        //drawing skybox
+        glCullFace(GL_BACK);
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+
+        skyboxShader.use();
+        skyboxShader.setMat4("projection", projection);
+        skyboxShader.setMat4("view", glm::mat4(glm::mat3(view)));
+        glBindVertexArray(skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
 
 
         if (programState->ImGuiEnabled)
@@ -377,4 +486,35 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
+}
+
+
+unsigned int loadCubemap(vector<std::string>& faces){
+
+    unsigned int skyboxID;
+    glGenTextures(1, &skyboxID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxID);
+
+    int width, height, nrChannels;
+    unsigned char *data;
+    for(unsigned int i = 0; i < faces.size(); i++) {
+
+        data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if(data) {
+            glTexImage2D(
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                    0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        }else{
+            std::cerr << "Failed to load cubemap face at path: " << faces[i] << '\n';
+        }
+        stbi_image_free(data);
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return skyboxID;
 }
