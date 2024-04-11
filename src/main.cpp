@@ -275,7 +275,7 @@ int main() {
     mercModel.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
+    pointLight.position = glm::vec3(3.0f, 5.0, -5.0);
     pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
     pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
@@ -287,7 +287,7 @@ int main() {
 
     DirLight& dirlight = programState->dirlight;
     dirlight.direction = glm::vec3(0.0f, -1.0, 0.0);
-    dirlight.ambient = glm::vec3(0.4, 0.4, 0.4);
+    dirlight.ambient = glm::vec3(0.0, 0.0, 0.0);
     dirlight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     dirlight.specular = glm::vec3(1.0, 1.0, 1.0);
 
