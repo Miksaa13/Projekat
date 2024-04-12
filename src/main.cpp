@@ -464,7 +464,7 @@ int main() {
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
         model = glm::mat4(1.0f);
-
+        // razlika
         model = glm::translate(model,programState->stazaPosition);
         model = glm::scale(model, glm::vec3(programState->stazaScale));
         ourShader.setMat4("model", model);
